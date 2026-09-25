@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laboratorio Digitale: Campionamento e Quantizzazione</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons CDN -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@400;600&display=swap');
+
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .code-font {
+            font-family: 'Fira Code', monospace;
+        }
+
+        .pixelated {
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+        }
+
+        /* Custom scrollbars */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
+
+    <!-- HEADER DI NAVIGAZIONE -->
+    <header class="bg-indigo-900 text-white shadow-md">
+        <div class="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-3">
+            <div class="flex items-center space-x-3">
+                <div class="bg-indigo-600 p-2 rounded-lg shadow-inner">
+                    <i data-lucide="grid" class="w-6 h-6 text-indigo-100"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold tracking-tight">Laboratorio Digitale: Immagini e Bit</h1>
+                    <p class="text-xs text-indigo-200">Esplora Campionamento Spaziale e Quantizzazione del Colore</p>
+                </div>
+            </div>
+
+            <div class="flex items-center space-x-2 text-xs bg-indigo-950/60 px-3 py-1.5 rounded-full border border-indigo-700/50">
+                <i data-lucide="sparkles" class="w-4 h-4 text-amber-400"></i>
+                <span>Strumento per la didattica del Digitale e dell'Informatica</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN CONTENT LAYOUT -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+        <!-- PANNELLO SINISTRO: CONTROLLI ED IMPOSTAZIONI (4 COLONNE) -->
+        <section class="lg:col-span-4 flex flex-col gap-5">
+
+            <!-- SORGENTE IMMAGINE -->
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
+                <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-500 mb-3 flex items-center gap-2">
+                    <i data-lucide="image" class="w-4 h-4 text-indigo-600"></i>
+                    1. Sorgente dell'Immagine
+                </h2>
+
+                <!-- Preset Buttons -->
+                <div class="grid grid-cols-2 gap-2 mb-4">
+                    <button onclick="loadPreset('geometric')" class="preset-btn px-3 py-2 text-xs font-medium bg-slate-100 hover:bg-indigo-50 hover:text-indigo-600 rounded-lg border border-slate-200 transition text-left flex items-center gap-1.5">
+                        <i data-lucide="shapes" class="w-3.5 h-3.5"></i> Geometrico
+                    </button>
+                    <button onclick="loadPreset('portrait')" class="preset-btn px-3 py-2 text-xs font-medium bg-slate-100 hover:bg-indigo-50 hover:text-indigo-600 rounded-lg border border-slate-200 transition text-left flex items-center gap-1.5">
+                        <i data-lucide="user" class="w-3.5 h-3.5"></i> Ritratto
+                    </button>
+                    <button onclick="loadPreset('landscape')" class="preset-btn px-3 py-2 text-xs font-medium bg-slate-100 hover:bg-indigo-50 hover:text-indigo-600 rounded-lg border border-slate-200 transition text-left flex items-center gap-1.5">
+                        <i data-lucide="mountain" class="w-3.5 h-3.5"></i> Paesaggio
+                    </button>
+                    <button onclick="loadPreset('text')" class="preset-btn px-3 py-2 text-xs font-medium bg-slate-100 hover:bg-indigo-50 hover:text-indigo-600 rounded-lg border border-slate-200 transition text-left flex items-center gap-1.5">
+                        <i data-lucide="type" class="w-3.5 h-3.5"></i> Testo e Logo
+                    </button>
+                </div>
+
+                <!-- Caricamento File o URL -->
+                <div class="space-y-3 pt-2 border-t border-slate-100">
+                    <div>
+                        <label class="block text-xs font-medium text-slate-600 mb-1">Carica file locale:</label>
+                        <input type="file" id="fileInput" accept="image/*" class="block w-full text-xs text-slate-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 cursor-pointer border border-slate-200 rounded-lg bg-slate-50">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-medium text-slate-600 mb-1">Oppure da URL rete:</label>
+                        <div class="flex gap-2">
+                            <input type="url" id="urlInput" placeholder="https://esempio.com/immagine.jpg" class="flex-1 text-xs px-2.5 py-1.5 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            <button onclick="loadFromUrl()" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-medium transition">
+                                Carica
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PARAMETRI DI CAMPIONAMENTO E QUANTIZZAZIONE -->
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 space-y-6">
+                <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-500 flex items-center gap-2">
+                    <i data-lucide="sliders" class="w-4 h-4 text-indigo-600"></i>
+                    2. Parametri Digitali
+                </h2>
+
+                <!-- SLIDER CAMPIONAMENTO (Risoluzione Pixel) -->
+                <div class="space-y-2">
+                    <div class="flex justify-between items-center">
+                        <label for="samplingSlider" class="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                            <i data-lucide="maximize" class="w-3.5 h-3.5 text-blue-600"></i>
+                            Campionamento (Risoluzione)
+                        </label>
+                        <span id="samplingVal" class="code-font text-xs font-bold bg-blue-100 text-blue-800 px-2 py-0.5 rounded">64 x 64 px</span>
+                    </div>
+                    <input type="range" id="samplingSlider" min="8" max="256" step="8" value="64" class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600">
+                    <div class="flex justify-between text-[10px] text-slate-400 font-medium">
+                        <span>8x8 (Molto sgranata)</span>
+                        <span>256x256 (Dettagliata)</span>
+                    </div>
+                    <p class="text-[11px] text-slate-500 italic leading-snug">
+                        Determina quanti punti (pixel) vengono usati per campionare lo spazio visivo.
+                    </p>
+                </div>
+
+                <hr class="border-slate-100">
+
+                <!-- SLIDER QUANTIZZAZIONE (Profondità di Bit) -->
+                <div class="space-y-2">
+                    <div class="flex justify-between items-center">
+                        <label for="bitDepthSlider" class="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                            <i data-lucide="layers" class="w-3.5 h-3.5 text-emerald-600"></i>
+                            Quantizzazione (Profondità Bit)
+                        </label>
+                        <span id="bitDepthVal" class="code-font text-xs font-bold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded">3 Bit (8 Livelli)</span>
+                    </div>
+                    <input type="range" id="bitDepthSlider" min="1" max="8" step="1" value="3" class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-emerald-600">
+                    <div class="flex justify-between text-[10px] text-slate-400 font-medium">
+                        <span>1 Bit (2 tonalità: B/N)</span>
+                        <span>8 Bit (256 tonalità)</span>
+                    </div>
+                    <p class="text-[11px] text-slate-500 italic leading-snug">
+                        Determina quanti livelli o sfumature di grigio possono essere assegnati a ciascun pixel.
+                    </p>
+                </div>
+
+                <!-- OPZIONI VISTA -->
+                <div class="pt-2 border-t border-slate-100 flex items-center justify-between">
+                    <label class="text-xs font-medium text-slate-600 flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" id="toggleGrid" class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500">
+                        <span>Mostra griglia dei pixel</span>
+                    </label>
+                    <button id="resetBtn" onclick="resetControls()" class="text-xs text-slate-500 hover:text-indigo-600 underline flex items-center gap-1">
+                        <i data-lucide="rotate-ccw" class="w-3 h-3"></i> Ripristina
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- PANNELLO CENTRALE: VISUALIZZAZIONE ED ISPEZIONE (5 COLONNE) -->
+        <section class="lg:col-span-5 flex flex-col gap-4">
+
+            <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex flex-col items-center">
+                <div class="w-full flex justify-between items-center mb-3">
+                    <span class="text-xs font-semibold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
+                        <i data-lucide="eye" class="w-4 h-4 text-indigo-600"></i>
+                        Immagine Elaborata
+                    </span>
+                    <div class="flex items-center space-x-1 bg-slate-100 p-0.5 rounded-lg text-xs font-medium">
+                        <button id="viewDigitalBtn" onclick="setMode('digital')" class="px-2.5 py-1 rounded-md bg-white shadow-xs text-indigo-600 font-semibold">Digitale</button>
+                        <button id="viewOriginalBtn" onclick="setMode('original')" class="px-2.5 py-1 rounded-md text-slate-600 hover:text-slate-900">Originale</button>
+                    </div>
+                </div>
+
+                <!-- Canvas Wrapper -->
+                <div class="relative w-full aspect-square bg-slate-900 rounded-xl overflow-hidden shadow-inner flex items-center justify-center cursor-crosshair group" id="canvasContainer">
+                    <!-- Main Display Canvas -->
+                    <canvas id="mainCanvas" class="pixelated max-w-full max-h-full object-contain shadow-lg"></canvas>
+
+                    <!-- Overlay Selector Box for 5x5 region -->
+                    <div id="lensBox" class="absolute pointer-events-none border-2 border-amber-400 bg-amber-400/20 shadow-md hidden rounded-xs" style="width: 40px; height: 40px;">
+                        <div class="absolute -top-5 left-1/2 -translate-x-1/2 bg-amber-500 text-white font-mono text-[9px] px-1 rounded shadow">5x5</div>
+                    </div>
+                </div>
+
+                <div class="w-full mt-3 flex items-center justify-between text-xs text-slate-500">
+                    <span class="flex items-center gap-1">
+                        <i data-lucide="mouse-pointer" class="w-3.5 h-3.5 text-indigo-500"></i>
+                        Muovi il mouse sull'immagine per la lente
+                    </span>
+                    <span id="cursorPos" class="code-font text-[11px] font-semibold text-slate-600">X: - | Y: -</span>
+                </div>
+            </div>
+
+            <!-- Informazioni didattiche rapide -->
+            <div class="bg-indigo-50 border border-indigo-100 p-4 rounded-xl text-xs text-indigo-900 flex items-start gap-3">
+                <i data-lucide="info" class="w-5 h-5 text-indigo-600 flex-shrink-0 mt-0.5"></i>
+                <div class="space-y-1">
+                    <strong class="font-semibold">Cosa stiamo osservando?</strong>
+                    <p class="text-indigo-800 leading-relaxed">
+                        L'immagine continua viene suddivisa in una <strong>griglia di celle</strong> (Campionamento). Ad ogni cella viene assegnato un singolo valore numerico che rappresenta l'intensità luminosa (Quantizzazione).
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- PANNELLO DESTRO: LENTE 5X5 E CALCOLO BIT/MEMORIA (3 COLONNE) -->
+        <section class="lg:col-span-3 flex flex-col gap-5">
+
+            <!-- LENTE DI INGRANDIMENTO 5X5 NUMERICA -->
+            <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
+                <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2 flex items-center justify-between">
+                    <span class="flex items-center gap-1.5">
+                        <i data-lucide="search" class="w-4 h-4 text-indigo-600"></i>
+                        Lente d'Ingrandimento 5x5
+                    </span>
+                    <span class="text-[10px] text-indigo-600 font-bold bg-indigo-50 px-1.5 py-0.5 rounded">Valori Numerici</span>
+                </h2>
+
+                <p class="text-[11px] text-slate-500 mb-3">
+                    Matrice di intensità dei 25 pixel nell'area selezionata:
+                </p>
+
+                <!-- Grid 5x5 -->
+                <div id="grid5x5" class="grid grid-cols-5 gap-1 bg-slate-200 p-1 rounded-lg aspect-square w-full">
+                    <!-- Popolated via JS -->
+                </div>
+
+                <!-- Info Pixel Selezionato al centro o hover -->
+                <div class="mt-3 p-2.5 bg-slate-50 rounded-lg border border-slate-200 flex justify-between items-center text-xs">
+                    <div>
+                        <span class="block text-[10px] text-slate-400 uppercase font-bold">Pixel Centrale</span>
+                        <span id="centerPixelColor" class="font-semibold text-slate-700">Livello: -</span>
+                    </div>
+                    <div id="centerPixelSwatch" class="w-6 h-6 rounded border border-slate-300 bg-slate-300 shadow-xs"></div>
+                </div>
+            </div>
+
+            <!-- CARD CALCOLO MEMORIA E TEORIA -->
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex-1 flex flex-col justify-between space-y-4">
+                <div>
+                    <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-3 flex items-center gap-1.5">
+                        <i data-lucide="hard-drive" class="w-4 h-4 text-indigo-600"></i>
+                        Calcolo Memoria Occupata
+                    </h2>
+
+                    <!-- Formula Visiva -->
+                    <div class="bg-slate-900 text-slate-100 p-3.5 rounded-xl code-font text-xs space-y-2 shadow-inner">
+                        <div class="text-slate-400 text-[10px] uppercase font-sans font-bold">Formula della dimensione:</div>
+                        <div class="text-amber-300 font-semibold text-center text-[13px]">
+                            Bit Totali = W × H × b
+                        </div>
+                        <div class="border-t border-slate-800 pt-2 text-[11px] space-y-1">
+                            <div class="flex justify-between">
+                                <span class="text-slate-400">Risoluzione (W×H):</span>
+                                <span id="calcResolution" class="text-blue-300">64 × 64</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-slate-400">Totale Pixel (N):</span>
+                                <span id="calcTotalPixels" class="text-blue-300">4.096</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-slate-400">Profondità (b):</span>
+                                <span id="calcBitDepth" class="text-emerald-300">3 bit/pixel</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Risultati Numerici -->
+                    <div class="mt-4 space-y-2">
+                        <div class="p-3 bg-indigo-50 border border-indigo-100 rounded-xl flex justify-between items-center">
+                            <div>
+                                <span class="block text-[10px] text-indigo-500 font-bold uppercase">Dimensione in Bit</span>
+                                <span id="resBits" class="text-base font-bold text-indigo-950 code-font">12.288 bit</span>
+                            </div>
+                            <i data-lucide="binary" class="w-5 h-5 text-indigo-400"></i>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-2">
+                            <div class="p-2.5 bg-slate-50 border border-slate-200 rounded-xl">
+                                <span class="block text-[9px] text-slate-400 font-bold uppercase">In Byte (B)</span>
+                                <span id="resBytes" class="text-xs font-bold text-slate-700 code-font">1.536 B</span>
+                            </div>
+                            <div class="p-2.5 bg-slate-50 border border-slate-200 rounded-xl">
+                                <span class="block text-[9px] text-slate-400 font-bold uppercase">In KiloByte (KB)</span>
+                                <span id="resKB" class="text-xs font-bold text-slate-700 code-font">1,50 KB</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Spiegazione Espandibile -->
+                <div class="pt-2 border-t border-slate-100">
+                    <details class="group">
+                        <summary class="text-xs font-semibold text-indigo-600 hover:text-indigo-800 cursor-pointer flex items-center justify-between py-1">
+                            <span>Come si calcola? (Spiegazione)</span>
+                            <i data-lucide="chevron-down" class="w-4 h-4 transition-transform group-open:rotate-180"></i>
+                        </summary>
+                        <div class="mt-2 text-[11px] text-slate-600 space-y-1.5 leading-relaxed bg-slate-50 p-2.5 rounded-lg border border-slate-200">
+                            <p>1. <strong>Pixel totali:</strong> Moltiplichiamo la larghezza per l'altezza (<span id="explainPx">64×64 = 4096</span>).</p>
+                            <p>2. <strong>Bit totali:</strong> Moltiplichiamo i pixel per la profondità di bit (<span id="explainBits">4096 × 3 = 12288</span> bit).</p>
+                            <p>3. <strong>Conversione in Byte:</strong> Dividiamo i bit per 8 (poiché 1 Byte = 8 bit).</p>
+                            <p>4. <strong>Conversione in KB:</strong> Dividiamo i Byte per 1024.</p>
+                        </div>
+                    </details>
+                </div>
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="bg-white border-t border-slate-200 py-3 mt-auto">
+        <div class="max-w-7xl mx-auto px-4 text-center text-xs text-slate-400">
+            Laboratorio Interattivo di Elaborazione delle Immagini • Utilizzabile per lezioni STEM e Informatica
+        </div>
+    </footer>
+
+    <!-- LOGICA JAVASCRIPT APP -->
+    <script>
+        // State management
+        const state = {
+            image: new Image(),
+            originalWidth: 0,
+            originalHeight: 0,
+            samplingResolution: 64, // Target width/height for square representation
+            bitDepth: 3,           // Bit depth (1 to 8)
+            showGrid: false,
+            mode: 'digital',       // 'digital' or 'original'
+            hoverPos: { x: 32, y: 32 }, // Pixel coords in sampled image
+            isLoaded: false
+        };
+
+        // Canvas element references
+        const mainCanvas = document.getElementById('mainCanvas');
+        const mainCtx = mainCanvas.getContext('2d', { willReadFrequently: true });
+
+        // Offscreen canvas for raw image processing
+        const offCanvas = document.createElement('canvas');
+        const offCtx = offCanvas.getContext('2d', { willReadFrequently: true });
+
+        // Preset generator function to create high contrast procedural images (offline reliable)
+        function createPresetImage(type) {
+            const pCanvas = document.createElement('canvas');
+            pCanvas.width = 400;
+            pCanvas.height = 400;
+            const pCtx = pCanvas.getContext('2d');
+
+            if (type === 'geometric') {
+                // Background gradient
+                const grad = pCtx.createLinearGradient(0, 0, 400, 400);
+                grad.addColorStop(0, '#000000');
+                grad.addColorStop(1, '#ffffff');
+                pCtx.fillStyle = grad;
+                pCtx.fillRect(0, 0, 400, 400);
+
+                // Geometric shapes
+                pCtx.fillStyle = '#ffffff';
+                pCtx.beginPath();
+                pCtx.arc(200, 200, 120, 0, Math.PI * 2);
+                pCtx.fill();
+
+                pCtx.fillStyle = '#000000';
+                pCtx.fillRect(140, 140, 120, 120);
+
+                pCtx.fillStyle = '#808080';
+                pCtx.beginPath();
+                pCtx.arc(200, 200, 40, 0, Math.PI * 2);
+                pCtx.fill();
+            } else if (type === 'portrait') {
+                // Stylized portrait face with smooth gradients
+                pCtx.fillStyle = '#1e293b';
+                pCtx.fillRect(0, 0, 400, 400);
+
+                // Head
+                pCtx.fillStyle = '#e2e8f0';
+                pCtx.beginPath();
+                pCtx.ellipse(200, 190, 100, 130, 0, 0, Math.PI * 2);
+                pCtx.fill();
+
+                // Eyes
+                pCtx.fillStyle = '#0f172a';
+                pCtx.beginPath();
+                pCtx.arc(160, 170, 18, 0, Math.PI * 2);
+                pCtx.arc(240, 170, 18, 0, Math.PI * 2);
+                pCtx.fill();
+
+                // Mouth
+                pCtx.beginPath();
+                pCtx.arc(200, 240, 45, 0.1 * Math.PI, 0.9 * Math.PI);
+                pCtx.lineWidth = 10;
+                pCtx.strokeStyle = '#0f172a';
+                pCtx.stroke();
+            } else if (type === 'landscape') {
+                // Sun & Mountains
+                pCtx.fillStyle = '#0f172a';
+                pCtx.fillRect(0, 0, 400, 400);
+
+                // Sun
+                pCtx.fillStyle = '#ffffff';
+                pCtx.beginPath();
+                pCtx.arc(200, 150, 70, 0, Math.PI * 2);
+                pCtx.fill();
+
+                // Mountain 1
+                pCtx.fillStyle = '#64748b';
+                pCtx.beginPath();
+                pCtx.moveTo(0, 400);
+                pCtx.lineTo(180, 180);
+                pCtx.lineTo(320, 400);
+                pCtx.fill();
+
+                // Mountain 2
+                pCtx.fillStyle = '#334155';
+                pCtx.beginPath();
+                pCtx.moveTo(120, 400);
+                pCtx.lineTo(290, 210);
+                pCtx.lineTo(400, 400);
+                pCtx.fill();
+            } else if (type === 'text') {
+                pCtx.fillStyle = '#ffffff';
+                pCtx.fillRect(0, 0, 400, 400);
+
+                pCtx.fillStyle = '#000000';
+                pCtx.font = 'bold 90px sans-serif';
+                pCtx.textAlign = 'center';
+                pCtx.fillText('BIT', 200, 180);
+
+                pCtx.font = 'bold 50px sans-serif';
+                pCtx.fillText('2ª MEDIA', 200, 270);
+
+                pCtx.lineWidth = 8;
+                pCtx.strokeRect(30, 30, 340, 340);
+            }
+
+            return pCanvas.toDataURL();
+        }
+
+        // Load Preset helper
+        function loadPreset(name) {
+            const dataUrl = createPresetImage(name);
+            loadImage(dataUrl);
+        }
+
+        // Load image from URL
+        function loadFromUrl() {
+            const url = document.getElementById('urlInput').value.trim();
+            if (url) {
+                loadImage(url);
+            }
+        }
+
+        // Handle File Upload
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(evt) {
+                    loadImage(evt.target.result);
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Main Image Load Logic
+        function loadImage(src) {
+            state.isLoaded = false;
+            state.image = new Image();
+            state.image.crossOrigin = "Anonymous";
+            state.image.onload = () => {
+                state.originalWidth = state.image.width;
+                state.originalHeight = state.image.height;
+                state.isLoaded = true;
+
+                // Set default hover position to center
+                state.hoverPos = {
+                    x: Math.floor(state.samplingResolution / 2),
+                    y: Math.floor(state.samplingResolution / 2)
+                };
+
+                processAndRender();
+            };
+            state.image.onerror = () => {
+                // Fallback on error
+                console.warn("Impossibile caricare l'immagine fornita. Caricamento preset di default.");
+                loadPreset('geometric');
+            };
+            state.image.src = src;
+        }
+
+        /**
+         * Core processing engine:
+         * 1. Grayscale conversion
+         * 2. Downsampling to resolution (W_sample x H_sample)
+         * 3. Color quantization to 2^b levels
+         */
+        function processAndRender() {
+            if (!state.isLoaded) return;
+
+            const N = state.samplingResolution; // We treat sampled image as N x N for simplicity & clarity
+            offCanvas.width = N;
+            offCanvas.height = N;
+
+            // Draw original image resized to N x N onto offscreen canvas
+            offCtx.drawImage(state.image, 0, 0, N, N);
+
+            // Fetch Pixel Data
+            const imgData = offCtx.getImageData(0, 0, N, N);
+            const data = imgData.data;
+
+            const levels = Math.pow(2, state.bitDepth); // Total quantization levels (e.g., 2, 4, 8, ..., 256)
+            const step = 255 / (levels - 1 || 1);       // Step value between levels
+
+            // Array to store discrete quantization indices (0 to levels-1) for 5x5 lookup
+            state.quantizedMatrix = new Uint8Array(N * N);
+
+            for (let i = 0; i < data.length; i += 4) {
+                const r = data[i];
+                const g = data[i + 1];
+                const b = data[i + 2];
+
+                // Standard Grayscale Luminance Formula: Y = 0.299R + 0.587G + 0.114B
+                const gray = 0.299 * r + 0.587 * g + 0.114 * b;
+
+                // Quantization index calculation (0 to levels - 1)
+                let qIndex = Math.round(gray / step);
+                if (qIndex >= levels) qIndex = levels - 1;
+                if (qIndex < 0) qIndex = 0;
+
+                // Reconstructed quantized grayscale value (0 to 255)
+                const quantizedGray = Math.round(qIndex * step);
+
+                // Store index
+                const pixelIdx = i / 4;
+                state.quantizedMatrix[pixelIdx] = qIndex;
+
+                // Write back to image data
+                data[i]     = quantizedGray;
+                data[i + 1] = quantizedGray;
+                data[i + 2] = quantizedGray;
+                data[i + 3] = 255; // Fully opaque
+            }
+
+            // Put processed data back onto offscreen canvas
+            offCtx.putImageData(imgData, 0, 0);
+
+            // Now Render to Display Canvas
+            renderDisplayCanvas();
+
+            // Update 5x5 Magnifying Lens and Calculation Cards
+            updateLens5x5();
+            updateCalculations();
+        }
+
+        function renderDisplayCanvas() {
+            const displaySize = 400; // Display box dimension in px
+            mainCanvas.width = displaySize;
+            mainCanvas.height = displaySize;
+
+            mainCtx.imageSmoothingEnabled = false; // Crisp pixel rendering
+
+            if (state.mode === 'original') {
+                mainCtx.drawImage(state.image, 0, 0, displaySize, displaySize);
+            } else {
+                // Render quantized pixelated image
+                mainCtx.drawImage(offCanvas, 0, 0, displaySize, displaySize);
+
+                // Draw Grid overlay if enabled
+                if (state.showGrid) {
+                    const N = state.samplingResolution;
+                    const cellSize = displaySize / N;
+
+                    mainCtx.strokeStyle = 'rgba(255, 255, 255, 0.25)';
+                    mainCtx.lineWidth = 0.5;
+
+                    mainCtx.beginPath();
+                    for (let x = 0; x <= N; x++) {
+                        mainCtx.moveTo(x * cellSize, 0);
+                        mainCtx.lineTo(x * cellSize, displaySize);
+                    }
+                    for (let y = 0; y <= N; y++) {
+                        mainCtx.moveTo(0, y * cellSize);
+                        mainCtx.lineTo(displaySize, y * cellSize);
+                    }
+                    mainCtx.stroke();
+                }
+            }
+
+            // Position and resize the Lens indicator box over the main canvas
+            updateLensBoxOverlay();
+        }
+
+        // Position highlight rectangle on canvas
+        function updateLensBoxOverlay() {
+            const lensBox = document.getElementById('lensBox');
+            if (!state.isLoaded || state.mode === 'original') {
+                lensBox.classList.add('hidden');
+                return;
+            }
+
+            lensBox.classList.remove('hidden');
+            const N = state.samplingResolution;
+            const container = document.getElementById('canvasContainer');
+            const canvasRect = mainCanvas.getBoundingClientRect();
+            const containerRect = container.getBoundingClientRect();
+
+            const cellDisplaySize = canvasRect.width / N;
+            const boxSize = cellDisplaySize * 5; // 5x5 cells
+
+            // Canvas offset inside container (since object-contain centers canvas)
+            const offsetX = canvasRect.left - containerRect.left;
+            const offsetY = canvasRect.top - containerRect.top;
+
+            // Coordinates for top-left of the 5x5 box
+            const startX = (state.hoverPos.x - 2) * cellDisplaySize + offsetX;
+            const startY = (state.hoverPos.y - 2) * cellDisplaySize + offsetY;
+
+            lensBox.style.width = `${boxSize}px`;
+            lensBox.style.height = `${boxSize}px`;
+            lensBox.style.left = `${startX}px`;
+            lensBox.style.top = `${startY}px`;
+        }
+
+        // Render 5x5 Matrix Inspection
+        function updateLens5x5() {
+            const gridContainer = document.getElementById('grid5x5');
+            gridContainer.innerHTML = '';
+
+            const N = state.samplingResolution;
+            const levels = Math.pow(2, state.bitDepth);
+            const step = 255 / (levels - 1 || 1);
+
+            const centerX = state.hoverPos.x;
+            const centerY = state.hoverPos.y;
+
+            let centerInfo = null;
+
+            // Loop 5x5 region (-2 to +2 around hover position)
+            for (let dy = -2; dy <= 2; dy++) {
+                for (let dx = -2; dx <= 2; dx++) {
+                    const targetX = centerX + dx;
+                    const targetY = centerY + dy;
+
+                    const cell = document.createElement('div');
+                    cell.className = 'relative flex items-center justify-center rounded text-[10px] font-mono font-bold select-none transition-all border border-black/10';
+
+                    // Check bounds
+                    if (targetX >= 0 && targetX < N && targetY >= 0 && targetY < N) {
+                        const idx = targetY * N + targetX;
+                        const qIndex = state.quantizedMatrix[idx];
+                        const intensity = Math.round(qIndex * step);
+
+                        // Background color
+                        cell.style.backgroundColor = `rgb(${intensity}, ${intensity}, ${intensity})`;
+
+                        // High contrast text color based on brightness
+                        const textColor = intensity > 128 ? '#000000' : '#ffffff';
+                        cell.style.color = textColor;
+
+                        // Display index (0 to 2^b - 1)
+                        cell.textContent = qIndex;
+
+                        // Highlight center cell (0,0)
+                        if (dx === 0 && dy === 0) {
+                            cell.classList.add('ring-2', 'ring-amber-400', 'z-10');
+                            centerInfo = { qIndex, intensity, levels };
+                        }
+                    } else {
+                        // Out of bounds cell
+                        cell.style.backgroundColor = '#e2e8f0';
+                        cell.textContent = '-';
+                        cell.style.color = '#94a3b8';
+                    }
+
+                    gridContainer.appendChild(cell);
+                }
+            }
+
+            // Update center cell highlight label
+            const centerLabel = document.getElementById('centerPixelColor');
+            const centerSwatch = document.getElementById('centerPixelSwatch');
+
+            if (centerInfo) {
+                centerLabel.textContent = `Livello: ${centerInfo.qIndex} / ${centerInfo.levels - 1} (${centerInfo.intensity})`;
+                centerSwatch.style.backgroundColor = `rgb(${centerInfo.intensity}, ${centerInfo.intensity}, ${centerInfo.intensity})`;
+            } else {
+                centerLabel.textContent = `Livello: -`;
+                centerSwatch.style.backgroundColor = `#cbd5e1`;
+            }
+
+            // Update cursor position text
+            document.getElementById('cursorPos').textContent = `X: ${centerX} | Y: ${centerY}`;
+        }
+
+        // Memory & Formula Calculations update
+        function updateCalculations() {
+            const W = state.samplingResolution;
+            const H = state.samplingResolution;
+            const totalPixels = W * H;
+            const bitDepth = state.bitDepth;
+
+            const totalBits = totalPixels * bitDepth;
+            const totalBytes = totalBits / 8;
+            const totalKB = totalBytes / 1024;
+
+            // Formatting helper
+            const fmt = (num) => new Intl.NumberFormat('it-IT').format(num);
+
+            // Update formula card
+            document.getElementById('calcResolution').textContent = `${W} × ${H}`;
+            document.getElementById('calcTotalPixels').textContent = fmt(totalPixels);
+            document.getElementById('calcBitDepth').textContent = `${bitDepth} bit/pixel`;
+
+            // Update memory badges
+            document.getElementById('resBits').textContent = `${fmt(totalBits)} bit`;
+            document.getElementById('resBytes').textContent = `${fmt(Math.ceil(totalBytes))} B`;
+            document.getElementById('resKB').textContent = `${totalKB.toFixed(2)} KB`;
+
+            // Update explanation text
+            document.getElementById('explainPx').textContent = `${W} × ${H} = ${fmt(totalPixels)}`;
+            document.getElementById('explainBits').textContent = `${fmt(totalPixels)} × ${bitDepth} = ${fmt(totalBits)}`;
+        }
+
+        // Control Listeners Setup
+        const samplingSlider = document.getElementById('samplingSlider');
+        const bitDepthSlider = document.getElementById('bitDepthSlider');
+        const toggleGrid = document.getElementById('toggleGrid');
+
+        samplingSlider.addEventListener('input', (e) => {
+            state.samplingResolution = parseInt(e.target.value);
+            document.getElementById('samplingVal').textContent = `${state.samplingResolution} x ${state.samplingResolution} px`;
+
+            // Adjust hover position if out of bounds
+            state.hoverPos.x = Math.min(state.hoverPos.x, state.samplingResolution - 1);
+            state.hoverPos.y = Math.min(state.hoverPos.y, state.samplingResolution - 1);
+
+            processAndRender();
+        });
+
+        bitDepthSlider.addEventListener('input', (e) => {
+            state.bitDepth = parseInt(e.target.value);
+            const levels = Math.pow(2, state.bitDepth);
+            document.getElementById('bitDepthVal').textContent = `${state.bitDepth} Bit (${levels} Livelli)`;
+            processAndRender();
+        });
+
+        toggleGrid.addEventListener('change', (e) => {
+            state.showGrid = e.target.checked;
+            renderDisplayCanvas();
+        });
+
+        // Mode Switching (Original vs Digital)
+        function setMode(mode) {
+            state.mode = mode;
+            document.getElementById('viewDigitalBtn').className = mode === 'digital'
+                ? 'px-2.5 py-1 rounded-md bg-white shadow-xs text-indigo-600 font-semibold'
+                : 'px-2.5 py-1 rounded-md text-slate-600 hover:text-slate-900';
+
+            document.getElementById('viewOriginalBtn').className = mode === 'original'
+                ? 'px-2.5 py-1 rounded-md bg-white shadow-xs text-indigo-600 font-semibold'
+                : 'px-2.5 py-1 rounded-md text-slate-600 hover:text-slate-900';
+
+            renderDisplayCanvas();
+        }
+
+        // Mouse Hover Inspection handling
+        mainCanvas.addEventListener('mousemove', (e) => {
+            if (!state.isLoaded) return;
+
+            const rect = mainCanvas.getBoundingClientRect();
+            const clickX = e.clientX - rect.left;
+            const clickY = e.clientY - rect.top;
+
+            // Map click onto N x N sampled pixel grid
+            const gridX = Math.floor((clickX / rect.width) * state.samplingResolution);
+            const gridY = Math.floor((clickY / rect.height) * state.samplingResolution);
+
+            // Constrain within [0, N-1]
+            const clampedX = Math.max(0, Math.min(state.samplingResolution - 1, gridX));
+            const clampedY = Math.max(0, Math.min(state.samplingResolution - 1, gridY));
+
+            if (clampedX !== state.hoverPos.x || clampedY !== state.hoverPos.y) {
+                state.hoverPos = { x: clampedX, y: clampedY };
+                updateLensBoxOverlay();
+                updateLens5x5();
+            }
+        });
+
+        // Touch support for mobile devices
+        mainCanvas.addEventListener('touchmove', (e) => {
+            if (!state.isLoaded || !e.touches[0]) return;
+            const touch = e.touches[0];
+            const rect = mainCanvas.getBoundingClientRect();
+            const clickX = touch.clientX - rect.left;
+            const clickY = touch.clientY - rect.top;
+
+            const gridX = Math.floor((clickX / rect.width) * state.samplingResolution);
+            const gridY = Math.floor((clickY / rect.height) * state.samplingResolution);
+
+            const clampedX = Math.max(0, Math.min(state.samplingResolution - 1, gridX));
+            const clampedY = Math.max(0, Math.min(state.samplingResolution - 1, gridY));
+
+            state.hoverPos = { x: clampedX, y: clampedY };
+            updateLensBoxOverlay();
+            updateLens5x5();
+            e.preventDefault();
+        }, { passive: false });
+
+        // Reset controls function
+        function resetControls() {
+            samplingSlider.value = 64;
+            bitDepthSlider.value = 3;
+            toggleGrid.checked = false;
+
+            state.samplingResolution = 64;
+            state.bitDepth = 3;
+            state.showGrid = false;
+
+            document.getElementById('samplingVal').textContent = '64 x 64 px';
+            document.getElementById('bitDepthVal').textContent = '3 Bit (8 Livelli)';
+
+            processAndRender();
+        }
+
+        window.onload = () => {
+            // Initialize Lucide Icons
+            lucide.createIcons();
+
+            // Load default preset
+            loadPreset('geometric');
+
+            // Handle window resize for overlay alignment
+            window.addEventListener('resize', () => {
+                if (state.isLoaded) {
+                    renderDisplayCanvas();
+                }
+            });
+        };
+    </script>
+</body>
+</html>
