@@ -45,13 +45,6 @@ Trattandosi di un’applicazione **single-file HTML client-side**, non richiede 
 1. Scarica il file `laboratorio_campionamento_e_quantizzazione_2.html` (o rinominalo in `index.html`).
 2. Apri il file direttamente facendoci doppio clic con un qualsiasi browser moderno (Chrome, Edge, Firefox, Safari).
 
-### Pubblicazione su GitHub Pages
-Per renderla fruibile online agli studenti:
-1. Crea una repository pubblica su GitHub[cite: 4].
-2. Carica il file e assicurati che sia rinominato in `index.html`[cite: 4, 5].
-3. Vai su **Settings** > **Pages**, imposta la sorgente sul branch `main` e salva[cite: 4].
-4. La web app sarà subito attiva ed eseguibile da qualsiasi PC o tablet della scuola[cite: 4, 5].
-
 ---
 
 ## 🛠️ Tecnologie Utilizzate
@@ -65,4 +58,4 @@ Per renderla fruibile online agli studenti:
 
 ## 📜 Licenza
 
-Questo progetto è distribuito sotto licenza **MIT**[cite: 2]. È possibile riutilizzarlo, modificarlo e distribuirlo liberamente per scopi didattici, accademici e formativi[cite: 2].
+Questo progetto è distribuito sotto licenza **MIT**. È possibile riutilizzarlo, modificarlo e distribuirlo liberamente per scopi didattici, accademici e formativi.
